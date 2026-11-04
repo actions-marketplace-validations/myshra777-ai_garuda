@@ -1,0 +1,17 @@
+FROM scratch
+COPY bin/garuda /garuda
+COPY bin/garuda-api /garuda-api
+COPY bin/garuda-mcp /garuda-mcp
+COPY bin/garuda-talon /garuda-talon
+COPY bin/garuda /usr/local/bin/garuda
+COPY bin/garuda-api /usr/local/bin/garuda-api
+COPY bin/garuda-mcp /usr/local/bin/garuda-mcp
+COPY bin/garuda-talon /usr/local/bin/garuda-talon
+COPY capabilities.json /capabilities.json
+COPY version.txt /version.txt
+COPY migrations /migrations
+COPY policies /policies
+USER 65532:65532
+ENV GARUDA_BIND=0.0.0.0:8080
+EXPOSE 8080
+ENTRYPOINT ["/garuda-api"]

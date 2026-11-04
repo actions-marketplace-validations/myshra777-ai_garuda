@@ -190,7 +190,12 @@ var initCmd = &cobra.Command{
 			password = os.Getenv("GARUDA_PASSWORD")
 		}
 		if password == "" {
-			password = "garuda2026"
+			gen, genErr := generateInitPassword()
+			if genErr != nil {
+				return fmt.Errorf("could not generate owner password: %w", genErr)
+			}
+			password = gen
+			fmt.Println("  ! No --password/GARUDA_PASSWORD given; generated owner password for bootstrap (value not shown). Set GARUDA_PASSWORD or use --password to provide one explicitly.")
 		}
 		port := os.Getenv("PORT")
 		if port == "" {
@@ -198,7 +203,11 @@ var initCmd = &cobra.Command{
 		}
 		controlToken := os.Getenv("GARUDA_CONTROL_TOKEN")
 		if controlToken == "" {
-			controlToken = "devtoken-changeme-please"
+			gen, genErr := generateControlToken()
+			if genErr != nil {
+				return fmt.Errorf("could not generate control token: %w", genErr)
+			}
+			controlToken = gen
 		}
 
 		_ = config.UpsertDotEnv(map[string]string{
@@ -340,7 +349,7 @@ var initCmd = &cobra.Command{
 		}
 
 		fmt.Println("\n══════════════════════════════════════════════════════════════════")
-		fmt.Println("🎉 Garuda v1.9.9 + Garuda Talon Active Harness Initialized!")
+		fmt.Printf("🎉 Garuda %s + Garuda Talon Active Harness Initialized!\n", resolveRuntimeVersion())
 		fmt.Println("══════════════════════════════════════════════════════════════════")
 		fmt.Printf("  • Platform:           %s/%s\n", runtime.GOOS, runtime.GOARCH)
 		fmt.Printf("  • Active Workspace:   %s\n", workspaceName)
@@ -528,7 +537,7 @@ func ensureLocalOrDockerPostgres() {
 
 func init() {
 	initCmd.Flags().StringVar(&initEmailFlag, "email", "", "Owner email to provision (auto-detected from git config if omitted)")
-	initCmd.Flags().StringVar(&initPasswordFlag, "password", "", "Owner password to provision (defaults to GARUDA_PASSWORD or garuda2026)")
+	initCmd.Flags().StringVar(&initPasswordFlag, "password", "", "Owner password to provision, at least 8 characters (defaults to GARUDA_PASSWORD; otherwise a random password is generated and not displayed, so set one to be able to log in)")
 	initCmd.Flags().StringVar(&initWorkspaceFlag, "workspace", "", "Workspace name to initialize (auto-detected if omitted)")
 	initCmd.Flags().StringVar(&initTargetFlag, "target", ".", "Repository path to index")
 	initCmd.Flags().BoolVar(&initSkipScanFlag, "skip-scan", false, "Skip initial repository AST scan")
